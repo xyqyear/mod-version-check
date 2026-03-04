@@ -17,11 +17,13 @@ class ProfileService:
     async def get_by_id(self, profile_id: int) -> Profile | None:
         return await self._profile_repo.get_by_id(profile_id)
 
-    async def create(self, name: str, loader: LoaderType) -> Profile:
-        profile = Profile(name=name, loader=loader)
+    async def create(self, name: str, loader: LoaderType, game_versions: list[str] | None = None) -> Profile:
+        profile = Profile(name=name, loader=loader, game_versions=game_versions)
         profile = await self._profile_repo.create(profile)
         await self._session.commit()
-        return await self._profile_repo.get_by_id(profile.id)
+        refreshed = await self._profile_repo.get_by_id(profile.id)
+        assert refreshed is not None
+        return refreshed
 
     async def update(self, profile_id: int, **kwargs) -> Profile | None:
         profile = await self._profile_repo.get_by_id(profile_id)

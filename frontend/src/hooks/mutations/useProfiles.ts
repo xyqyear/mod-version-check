@@ -27,6 +27,7 @@ export const useUpdateProfile = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.profiles.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.profiles.detail(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.profiles.matrix(id) });
     },
   });
 };

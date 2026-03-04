@@ -1,4 +1,5 @@
 import enum
+import json
 from datetime import datetime
 
 from sqlalchemy import (
@@ -17,6 +18,22 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.types import TypeDecorator
+
+
+class JSONList(TypeDecorator[list[str] | None]):
+    impl = Text
+    cache_ok = True
+
+    def process_bind_param(self, value: list[str] | None, dialect) -> str | None:
+        if value is None:
+            return None
+        return json.dumps(value)
+
+    def process_result_value(self, value: str | None, dialect) -> list[str] | None:
+        if value is None:
+            return None
+        return json.loads(value)
 
 naming_convention = {
     "ix": "ix_%(column_0_label)s",
@@ -68,6 +85,7 @@ class Profile(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(255))
     loader: Mapped[LoaderType] = mapped_column(Enum(LoaderType))
+    game_versions: Mapped[list[str] | None] = mapped_column(JSONList, default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 

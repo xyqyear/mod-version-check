@@ -17,7 +17,7 @@ mod-version-check/
 │   ├── app/
 │   │   ├── main.py              # FastAPI app (dual-app: api_app at /api, app serves SPA)
 │   │   ├── config.py            # Pydantic Settings (DB, sync, provider URLs)
-│   │   ├── db.py                # Async SQLAlchemy engine + session
+│   │   ├── db.py                # Async SQLAlchemy engine + session + migrations
 │   │   ├── models.py            # ORM: Mod, Profile, ModVersion, SyncStatus, profile_mods
 │   │   ├── scheduler.py         # APScheduler background sync job
 │   │   ├── providers/
@@ -57,7 +57,7 @@ mod-version-check/
 │   │   │   └── mutations/       # useMutation wrappers
 │   │   ├── pages/
 │   │   │   ├── Home.tsx         # Profile cards grid + create modal
-│   │   │   ├── ProfileDetail.tsx # Version matrix + mod management
+│   │   │   ├── ProfileDetail.tsx # Version matrix + mod management + inline rename + game version filter
 │   │   │   └── Settings.tsx     # Profiles/mods registry management
 │   │   ├── components/
 │   │   │   ├── AppLayout.tsx    # Layout with header nav + sync badge
@@ -122,7 +122,7 @@ docker compose up -d
 
 ### Models
 - **Mod**: Tracked mod with optional modrinth_id/curseforge_id
-- **Profile**: Named group of mods with a loader type (fabric/forge/neoforge/quilt)
+- **Profile**: Named group of mods with a loader type (fabric/forge/neoforge/quilt) and optional `game_versions` filter (JSON-encoded list of pinned game versions for matrix display)
 - **ModVersion**: Cached version data per mod/provider/loader/game_version
 - **SyncStatus**: Background sync job status tracking
 - **profile_mods**: M2M association table

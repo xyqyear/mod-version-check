@@ -27,6 +27,7 @@ async def list_profiles(db: AsyncSession = Depends(get_db)):
             loader=p.loader,
             mod_count=len(p.mods),
             created_at=p.created_at,
+            game_versions=p.game_versions,
         )
         for p in profiles
     ]
@@ -35,7 +36,7 @@ async def list_profiles(db: AsyncSession = Depends(get_db)):
 @router.post("", response_model=ProfileResponse, status_code=201)
 async def create_profile(data: ProfileCreate, db: AsyncSession = Depends(get_db)):
     service = ProfileService(db)
-    profile = await service.create(name=data.name, loader=data.loader)
+    profile = await service.create(name=data.name, loader=data.loader, game_versions=data.game_versions)
     return profile
 
 

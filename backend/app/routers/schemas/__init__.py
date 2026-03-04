@@ -8,11 +8,13 @@ from app.models import LoaderType
 class ProfileCreate(BaseModel):
     name: str
     loader: LoaderType
+    game_versions: list[str] | None = None
 
 
 class ProfileUpdate(BaseModel):
     name: str | None = None
     loader: LoaderType | None = None
+    game_versions: list[str] | None = None
 
 
 class ModSummary(BaseModel):
@@ -31,6 +33,7 @@ class ProfileResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     mods: list[ModSummary]
+    game_versions: list[str] | None = None
 
     model_config = {"from_attributes": True}
 
@@ -41,6 +44,7 @@ class ProfileListItem(BaseModel):
     loader: LoaderType
     mod_count: int
     created_at: datetime
+    game_versions: list[str] | None = None
 
     model_config = {"from_attributes": True}
 
@@ -123,5 +127,6 @@ class ModRow(BaseModel):
 
 class MatrixResponse(BaseModel):
     game_versions: list[str]
+    all_game_versions: list[str]
     mods: list[ModRow]
     last_synced_at: str | None

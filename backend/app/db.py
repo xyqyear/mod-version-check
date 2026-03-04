@@ -35,3 +35,16 @@ async def init_db() -> None:
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await _run_migrations(conn)
+
+
+async def _run_migrations(conn) -> None:
+    from sqlalchemy import text
+
+    existing = await conn.run_sync(
+        lambda sync_conn: {
+            row[1] for row in sync_conn.execute(text("PRAGMA table_info('profiles')"))
+        }
+    )
+    if "game_versions" not in existing:
+        await conn.execute(text("ALTER TABLE profiles ADD COLUMN game_versions TEXT"))

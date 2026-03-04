@@ -6,6 +6,7 @@ import {
   List,
   Avatar,
   Popconfirm,
+  Select,
   Space,
   Spin,
   Tag,
@@ -14,6 +15,7 @@ import {
 import {
   ArrowLeftOutlined,
   DeleteOutlined,
+  FilterOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
 import VersionMatrix from "@/components/VersionMatrix";
@@ -22,6 +24,7 @@ import { useProfile, useProfileMatrix } from "@/hooks/queries/useProfiles";
 import {
   useDeleteProfile,
   useRemoveModFromProfile,
+  useUpdateProfile,
 } from "@/hooks/mutations/useProfiles";
 
 const LOADER_COLORS: Record<string, string> = {
@@ -41,6 +44,7 @@ export default function ProfileDetail() {
   const { data: matrix, isLoading: matrixLoading } = useProfileMatrix(profileId);
   const deleteProfile = useDeleteProfile();
   const removeMod = useRemoveModFromProfile();
+  const updateProfile = useUpdateProfile();
   const [searchOpen, setSearchOpen] = useState(false);
 
   if (profileLoading) {
@@ -55,6 +59,25 @@ export default function ProfileDetail() {
     return <Typography.Text type="danger">Profile not found</Typography.Text>;
   }
 
+  const handleRename = (newName: string) => {
+    if (newName && newName !== profile.name) {
+      updateProfile.mutate(
+        { id: profileId, data: { name: newName } },
+        { onSuccess: () => message.success("Profile renamed") },
+      );
+    }
+  };
+
+  const handleGameVersionsChange = (values: string[]) => {
+    updateProfile.mutate({
+      id: profileId,
+      data: { game_versions: values.length > 0 ? values : null },
+    });
+  };
+
+  const allGameVersions = matrix?.all_game_versions ?? [];
+  const selectedGameVersions = profile.game_versions ?? [];
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -64,7 +87,14 @@ export default function ProfileDetail() {
             onClick={() => navigate("/")}
             type="text"
           />
-          <Typography.Title level={2} className="mb-0!">
+          <Typography.Title
+            level={2}
+            className="mb-0!"
+            editable={{
+              onChange: handleRename,
+              triggerType: ["icon", "text"],
+            }}
+          >
             {profile.name}
           </Typography.Title>
           <Tag color={LOADER_COLORS[profile.loader] ?? "default"}>
@@ -95,6 +125,21 @@ export default function ProfileDetail() {
             </Button>
           </Popconfirm>
         </Space>
+      </div>
+
+      <div className="flex items-center gap-2 mb-4">
+        <FilterOutlined />
+        <span className="text-sm font-medium">Game Versions:</span>
+        <Select
+          mode="multiple"
+          placeholder="All versions (no filter)"
+          value={selectedGameVersions}
+          onChange={handleGameVersionsChange}
+          options={allGameVersions.map((v) => ({ label: v, value: v }))}
+          allowClear
+          className="min-w-60"
+          loading={matrixLoading}
+        />
       </div>
 
       <Typography.Title level={4} className="mt-6!">

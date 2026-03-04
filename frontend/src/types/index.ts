@@ -6,6 +6,7 @@ export interface Profile {
   loader: LoaderType;
   mod_count: number;
   created_at: string;
+  game_versions: string[] | null;
 }
 
 export interface ProfileDetail {
@@ -15,6 +16,7 @@ export interface ProfileDetail {
   created_at: string;
   updated_at: string;
   mods: ModSummary[];
+  game_versions: string[] | null;
 }
 
 export interface ModSummary {
@@ -71,6 +73,7 @@ export interface ModRow {
 
 export interface VersionMatrix {
   game_versions: string[];
+  all_game_versions: string[];
   mods: ModRow[];
   last_synced_at: string | null;
 }
@@ -87,11 +90,13 @@ export interface SyncStatus {
 export interface ProfileCreate {
   name: string;
   loader: LoaderType;
+  game_versions?: string[] | null;
 }
 
 export interface ProfileUpdate {
   name?: string;
   loader?: LoaderType;
+  game_versions?: string[] | null;
 }
 
 export interface ModCreate {

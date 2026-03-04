@@ -22,7 +22,7 @@ class MatrixService:
 
         mod_ids = [m.id for m in profile.mods]
         if not mod_ids:
-            return {"game_versions": [], "mods": [], "last_synced_at": None}
+            return {"game_versions": [], "all_game_versions": [], "mods": [], "last_synced_at": None}
 
         versions = await self._version_repo.get_matrix_data(mod_ids, profile.loader.value)
 
@@ -32,7 +32,12 @@ class MatrixService:
             game_version_set.add(v.game_version)
             mod_versions[v.mod_id].append(v)
 
-        game_versions = sorted(game_version_set, key=_version_sort_key, reverse=True)
+        all_game_versions = sorted(game_version_set, key=_version_sort_key, reverse=True)
+
+        if profile.game_versions:
+            game_versions = [gv for gv in profile.game_versions if gv in game_version_set]
+        else:
+            game_versions = all_game_versions
 
         mods_data = []
         for mod in profile.mods:
@@ -58,6 +63,7 @@ class MatrixService:
 
         return {
             "game_versions": game_versions,
+            "all_game_versions": all_game_versions,
             "mods": mods_data,
             "last_synced_at": None,
         }
