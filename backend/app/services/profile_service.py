@@ -34,7 +34,9 @@ class ProfileService:
                 setattr(profile, key, value)
         profile = await self._profile_repo.update(profile)
         await self._session.commit()
-        return profile
+        refreshed = await self._profile_repo.get_by_id(profile.id)
+        assert refreshed is not None
+        return refreshed
 
     async def delete(self, profile_id: int) -> bool:
         profile = await self._profile_repo.get_by_id(profile_id)
