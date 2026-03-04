@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@layer base {
+  *, ::before, ::after {
+    border-style: none;
+  }
+}
+
+@theme {
+  --color-primary: #1677ff;
+}

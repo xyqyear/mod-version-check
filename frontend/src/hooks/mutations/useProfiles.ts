@@ -1,0 +1,66 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  addModToProfile,
+  createProfile,
+  deleteProfile,
+  removeModFromProfile,
+  updateProfile,
+} from "@/hooks/api/profiles";
+import { queryKeys } from "@/lib/query-keys";
+import type { ProfileCreate, ProfileUpdate } from "@/types";
+
+export const useCreateProfile = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: ProfileCreate) => createProfile(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.profiles.all });
+    },
+  });
+};
+
+export const useUpdateProfile = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: ProfileUpdate }) =>
+      updateProfile(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.profiles.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.profiles.detail(id) });
+    },
+  });
+};
+
+export const useDeleteProfile = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => deleteProfile(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.profiles.all });
+    },
+  });
+};
+
+export const useAddModToProfile = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ profileId, modId }: { profileId: number; modId: number }) =>
+      addModToProfile(profileId, modId),
+    onSuccess: (_, { profileId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.profiles.detail(profileId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.profiles.matrix(profileId) });
+    },
+  });
+};
+
+export const useRemoveModFromProfile = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ profileId, modId }: { profileId: number; modId: number }) =>
+      removeModFromProfile(profileId, modId),
+    onSuccess: (_, { profileId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.profiles.detail(profileId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.profiles.matrix(profileId) });
+    },
+  });
+};

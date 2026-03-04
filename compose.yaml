@@ -1,0 +1,11 @@
+services:
+  app:
+    image: ghcr.io/user/mod-version-check
+    container_name: mod-version-check
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/backend/data
+    environment:
+      - APP_NAME=Mod Version Checker
+    restart: unless-stopped
