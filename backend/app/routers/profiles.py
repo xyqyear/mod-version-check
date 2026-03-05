@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,6 +14,7 @@ from app.routers.schemas import (
 )
 from app.services.matrix_service import MatrixService
 from app.services.profile_service import ProfileService
+from app.services.sync_service import sync_single_mod
 
 router = APIRouter(prefix="/profiles", tags=["profiles"])
 
@@ -71,6 +74,7 @@ async def add_mod_to_profile(profile_id: int, data: AddModRequest, db: AsyncSess
     profile = await service.add_mod(profile_id, data.mod_id)
     if not profile:
         raise HTTPException(status_code=404, detail="Profile or mod not found")
+    asyncio.create_task(sync_single_mod(data.mod_id))
     return profile
 
 

@@ -50,6 +50,9 @@ export const useAddModToProfile = () => {
     onSuccess: (_, { profileId }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.profiles.detail(profileId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.profiles.matrix(profileId) });
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.profiles.matrix(profileId) });
+      }, 3000);
     },
   });
 };

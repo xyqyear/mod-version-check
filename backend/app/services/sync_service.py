@@ -55,6 +55,33 @@ async def sync_all_mods() -> None:
             await session.commit()
 
 
+async def sync_single_mod(mod_id: int) -> None:
+    async with async_session() as session:
+        try:
+            mod_repo = ModRepository(session)
+            profile_repo = ProfileRepository(session)
+            version_repo = ModVersionRepository(session)
+
+            mod = await mod_repo.get_by_id(mod_id)
+            if not mod:
+                return
+
+            loaders = await profile_repo.get_all_loaders_for_mod(mod.id)
+            if not loaders:
+                return
+
+            providers = get_all_providers()
+            if mod.modrinth_id and "modrinth" in providers:
+                await _fetch_and_store(
+                    version_repo, providers["modrinth"], mod.id, mod.modrinth_id, loaders
+                )
+
+            await session.commit()
+            logger.info("Single mod sync completed for mod %d", mod_id)
+        except Exception:
+            logger.exception("Single mod sync failed for mod %d", mod_id)
+
+
 async def _fetch_and_store(version_repo, provider, mod_id, project_id, loaders):
     async with _semaphore:
         try:
