@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     sync_interval_minutes: int = 360
     sync_on_startup: bool = True
     modrinth_base_url: str = "https://api.modrinth.com/v2"
-    modrinth_user_agent: str = "mod-version-checker/1.0.0 (admin@example.com)"
+    modrinth_user_agent: str = "xyqyear/mod-version-checker/0.1.0"
     curseforge_base_url: str = "https://api.curseforge.com"
     curseforge_api_key: str | None = None
     http_timeout: int = 30
