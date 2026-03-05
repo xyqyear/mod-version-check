@@ -7,9 +7,7 @@ export const useTriggerSync = () => {
   return useMutation({
     mutationFn: triggerSync,
     onSuccess: () => {
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: queryKeys.sync.status });
-      }, 2000);
+      queryClient.invalidateQueries({ queryKey: queryKeys.sync.status });
     },
   });
 };

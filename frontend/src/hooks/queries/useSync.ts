@@ -6,5 +6,6 @@ export const useSyncStatus = () =>
   useQuery({
     queryKey: queryKeys.sync.status,
     queryFn: fetchSyncStatus,
-    refetchInterval: 30_000,
+    refetchInterval: (query) =>
+      query.state.data?.status === "running" ? 2_000 : 30_000,
   });
