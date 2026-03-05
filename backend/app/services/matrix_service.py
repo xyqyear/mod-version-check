@@ -58,6 +58,8 @@ class MatrixService:
                 "mod_id": mod.id,
                 "mod_name": mod.name,
                 "icon_url": mod.icon_url,
+                "modrinth_id": mod.modrinth_id,
+                "curseforge_id": mod.curseforge_id,
                 "versions": versions_map,
             })
 

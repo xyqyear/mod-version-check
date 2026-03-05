@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Form, Input, Modal, Select } from "antd";
 import type { LoaderType, ProfileCreate } from "@/types";
 

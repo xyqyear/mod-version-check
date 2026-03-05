@@ -68,6 +68,8 @@ export interface ModRow {
   mod_id: number;
   mod_name: string;
   icon_url: string | null;
+  modrinth_id: string | null;
+  curseforge_id: number | null;
   versions: Record<string, VersionCell>;
 }
 

@@ -19,6 +19,7 @@ import {
   PlusOutlined,
 } from "@ant-design/icons";
 import VersionMatrix from "@/components/VersionMatrix";
+import DownloadModsModal from "@/components/DownloadModsModal";
 import ModSearchModal from "@/components/ModSearchModal";
 import { useProfile, useProfileMatrix } from "@/hooks/queries/useProfiles";
 import {
@@ -48,6 +49,7 @@ export default function ProfileDetail() {
   const removeMod = useRemoveModFromProfile();
   const updateProfile = useUpdateProfile();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [downloadVersion, setDownloadVersion] = useState<string | null>(null);
 
   if (profileLoading) {
     return (
@@ -155,7 +157,11 @@ export default function ProfileDetail() {
       <Typography.Title level={4} className="mt-6!">
         Version Matrix
       </Typography.Title>
-      <VersionMatrix matrix={matrix} loading={matrixLoading} />
+      <VersionMatrix
+        matrix={matrix}
+        loading={matrixLoading}
+        onDownload={setDownloadVersion}
+      />
 
       {profile.mods.length > 0 && (
         <>
@@ -209,6 +215,17 @@ export default function ProfileDetail() {
         profileId={profileId}
         profileLoader={profile.loader}
       />
+
+      {downloadVersion && matrix && (
+        <DownloadModsModal
+          open={!!downloadVersion}
+          onClose={() => setDownloadVersion(null)}
+          mods={matrix.mods}
+          gameVersion={downloadVersion}
+          loader={profile.loader}
+          profileName={profile.name}
+        />
+      )}
     </div>
   );
 }

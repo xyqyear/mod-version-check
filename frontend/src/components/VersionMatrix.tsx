@@ -1,14 +1,16 @@
-import { Avatar, Spin, Table, Typography } from "antd";
+import { Avatar, Button, Spin, Table, Tooltip, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
+import { DownloadOutlined } from "@ant-design/icons";
 import VersionCell from "@/components/VersionCell";
 import type { ModRow, VersionMatrix as VersionMatrixType } from "@/types";
 
 interface Props {
   matrix: VersionMatrixType | undefined;
   loading: boolean;
+  onDownload?: (gameVersion: string) => void;
 }
 
-export default function VersionMatrix({ matrix, loading }: Props) {
+export default function VersionMatrix({ matrix, loading, onDownload }: Props) {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -42,7 +44,25 @@ export default function VersionMatrix({ matrix, loading }: Props) {
       ),
     },
     ...matrix.game_versions.map((gv) => ({
-      title: gv,
+      title: (
+        <div className="flex flex-col items-center gap-1">
+          <span>{gv}</span>
+          {onDownload && (
+            <Tooltip title={`Download mods for ${gv}`}>
+              <Button
+                type="text"
+                size="small"
+                icon={<DownloadOutlined />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDownload(gv);
+                }}
+                className="text-gray-400 hover:text-blue-500!"
+              />
+            </Tooltip>
+          )}
+        </div>
+      ),
       key: gv,
       width: 140,
       align: "center" as const,

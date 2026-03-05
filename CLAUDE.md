@@ -7,7 +7,7 @@
 **Tech Stack:**
 
 - Backend: FastAPI, SQLAlchemy (async), aiosqlite, httpx, APScheduler, Pydantic Settings
-- Frontend: Vite, React 19, TypeScript, TanStack Query v5, Tailwind CSS v4, Ant Design, ky
+- Frontend: Vite, React 19, TypeScript, TanStack Query v5, Tailwind CSS v4, Ant Design, ky, fflate
 - Tooling: uv (Python), pnpm (Node.js)
 
 ## Repository Structure
@@ -52,7 +52,12 @@ mod-version-check/
 │   │   ├── App.tsx              # Route definitions (AppLayout wrapper, /login, ProtectedRoute)
 │   │   ├── lib/
 │   │   │   ├── api.ts           # ky HTTP client with auth token injection and 401 handling
-│   │   │   └── query-keys.ts    # Query key factory
+│   │   │   ├── query-keys.ts    # Query key factory
+│   │   │   ├── download-service.ts # Download orchestration: resolve → download → zip with progress
+│   │   │   └── download-providers/
+│   │   │       ├── types.ts     # DownloadProvider & ModFileInfo interfaces
+│   │   │       ├── modrinth.ts  # Modrinth CDN download provider (browser-side, CORS-enabled)
+│   │   │       └── index.ts     # Provider registry (getDownloadProvider)
 │   │   ├── hooks/
 │   │   │   ├── api/             # Pure API functions (profiles, mods, search, sync, auth)
 │   │   │   ├── queries/         # useQuery wrappers
@@ -62,16 +67,17 @@ mod-version-check/
 │   │   ├── pages/
 │   │   │   ├── Home.tsx         # Profile cards grid + create modal (auth-aware)
 │   │   │   ├── Login.tsx        # Token input card, validates via /auth/check
-│   │   │   ├── ProfileDetail.tsx # Version matrix + mod management + inline rename + game version filter (auth-aware)
+│   │   │   ├── ProfileDetail.tsx # Version matrix + mod management + inline rename + game version filter + mod download (auth-aware)
 │   │   │   └── Settings.tsx     # Profiles/mods registry management (protected route)
 │   │   ├── components/
 │   │   │   ├── AppLayout.tsx    # Layout with header nav + sync badge + login/logout button (auth-aware)
 │   │   │   ├── ProtectedRoute.tsx # Redirects to /login if auth required but not authenticated
 │   │   │   ├── ProfileCard.tsx  # Profile summary card
-│   │   │   ├── VersionMatrix.tsx # Ant Design Table with version cells
+│   │   │   ├── VersionMatrix.tsx # Ant Design Table with version cells + per-column download button
 │   │   │   ├── VersionCell.tsx  # Color-coded version tag with tooltip
 │   │   │   ├── CreateProfileModal.tsx
 │   │   │   ├── ModSearchModal.tsx # Debounced provider search + add
+│   │   │   ├── DownloadModsModal.tsx # Mod download progress modal with per-mod status + zip creation
 │   │   │   └── SyncStatusBadge.tsx # Sync status display + trigger button (auth-aware)
 │   │   └── types/
 │   │       └── index.ts         # All TypeScript interfaces
@@ -130,6 +136,18 @@ docker compose up -d
 - UI: Ant Design components with Tailwind CSS v4 utility classes
 - Ant Design ConfigProvider wraps app for theme customization
 - `AuthProvider` wraps app inside `BrowserRouter`, checks `/auth/required` on mount
+
+### Mod Download
+
+- One-click download of all mods for a specific game version column, delivered as a zip archive
+- Download button appears in each game version column header in the version matrix
+- **Download providers** (`lib/download-providers/`): abstract `DownloadProvider` interface with Modrinth implementation; calls Modrinth API v2 directly from browser (CORS-enabled, no API key needed)
+- **Download service** (`lib/download-service.ts`): orchestrates three phases — resolve (get file URLs from providers), download (fetch files with byte-level progress via ReadableStream), zip (pack with fflate at compression level 0)
+- Progress callback emits per-mod status (pending → resolving → downloading → done/skipped/error) and overall progress
+- `DownloadModsModal` shows phase text, overall progress bar, and per-mod list with inline progress/status tags
+- Uses native `fetch` (not ky) for external Modrinth API/CDN calls
+- Mods without a provider ID (e.g., `modrinth_id`) are skipped
+- Matrix API (`ModRow`) exposes `modrinth_id` and `curseforge_id` for provider lookup
 
 ### API Endpoints
 
