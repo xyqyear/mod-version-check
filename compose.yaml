@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/user/mod-version-check
+    image: ghcr.io/xyqyear/mod-version-check
     container_name: mod-version-check
     ports:
       - "8000:8000"
