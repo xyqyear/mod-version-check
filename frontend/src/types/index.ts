@@ -106,3 +106,11 @@ export interface ModCreate {
   modrinth_id?: string | null;
   curseforge_id?: number | null;
 }
+
+export interface AuthRequiredResponse {
+  required: boolean;
+}
+
+export interface AuthCheckResponse {
+  authenticated: boolean;
+}

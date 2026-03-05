@@ -26,6 +26,7 @@ import {
   useRemoveModFromProfile,
   useUpdateProfile,
 } from "@/hooks/mutations/useProfiles";
+import { useAuth } from "@/contexts/AuthContext";
 
 const LOADER_COLORS: Record<string, string> = {
   fabric: "blue",
@@ -39,6 +40,7 @@ export default function ProfileDetail() {
   const navigate = useNavigate();
   const { message } = App.useApp();
   const profileId = Number(id);
+  const { canEdit } = useAuth();
 
   const { data: profile, isLoading: profileLoading } = useProfile(profileId);
   const { data: matrix, isLoading: matrixLoading } = useProfileMatrix(profileId);
@@ -90,10 +92,14 @@ export default function ProfileDetail() {
           <Typography.Title
             level={2}
             className="mb-0!"
-            editable={{
-              onChange: handleRename,
-              triggerType: ["icon", "text"],
-            }}
+            editable={
+              canEdit
+                ? {
+                    onChange: handleRename,
+                    triggerType: ["icon", "text"],
+                  }
+                : false
+            }
           >
             {profile.name}
           </Typography.Title>
@@ -101,46 +107,50 @@ export default function ProfileDetail() {
             {profile.loader}
           </Tag>
         </Space>
-        <Space>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setSearchOpen(true)}
-          >
-            Add Mods
-          </Button>
-          <Popconfirm
-            title="Delete this profile?"
-            onConfirm={() => {
-              deleteProfile.mutate(profileId, {
-                onSuccess: () => {
-                  message.success("Profile deleted");
-                  navigate("/");
-                },
-              });
-            }}
-          >
-            <Button danger icon={<DeleteOutlined />}>
-              Delete
+        {canEdit && (
+          <Space>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setSearchOpen(true)}
+            >
+              Add Mods
             </Button>
-          </Popconfirm>
-        </Space>
+            <Popconfirm
+              title="Delete this profile?"
+              onConfirm={() => {
+                deleteProfile.mutate(profileId, {
+                  onSuccess: () => {
+                    message.success("Profile deleted");
+                    navigate("/");
+                  },
+                });
+              }}
+            >
+              <Button danger icon={<DeleteOutlined />}>
+                Delete
+              </Button>
+            </Popconfirm>
+          </Space>
+        )}
       </div>
 
-      <div className="flex items-center gap-2 mb-4">
-        <FilterOutlined />
-        <span className="text-sm font-medium">Game Versions:</span>
-        <Select
-          mode="multiple"
-          placeholder="All versions (no filter)"
-          value={selectedGameVersions}
-          onChange={handleGameVersionsChange}
-          options={allGameVersions.map((v) => ({ label: v, value: v }))}
-          allowClear
-          className="min-w-60"
-          loading={matrixLoading}
-        />
-      </div>
+      {canEdit && (
+        <div className="flex items-center gap-2 mb-4">
+          <FilterOutlined />
+          <span className="text-sm font-medium">Game Versions:</span>
+          <Select
+            mode="multiple"
+            placeholder="All versions (no filter)"
+            value={selectedGameVersions}
+            onChange={handleGameVersionsChange}
+            options={allGameVersions.map((v) => ({ label: v, value: v }))}
+            allowClear
+            className="min-w-60"
+            loading={matrixLoading}
+          />
+        </div>
+      )}
 
       <Typography.Title level={4} className="mt-6!">
         Version Matrix
@@ -156,23 +166,27 @@ export default function ProfileDetail() {
             dataSource={profile.mods}
             renderItem={(mod) => (
               <List.Item
-                actions={[
-                  <Popconfirm
-                    key="remove"
-                    title={`Remove ${mod.name}?`}
-                    onConfirm={() =>
-                      removeMod.mutate({ profileId, modId: mod.id })
-                    }
-                  >
-                    <Button
-                      danger
-                      size="small"
-                      icon={<DeleteOutlined />}
-                    >
-                      Remove
-                    </Button>
-                  </Popconfirm>,
-                ]}
+                actions={
+                  canEdit
+                    ? [
+                        <Popconfirm
+                          key="remove"
+                          title={`Remove ${mod.name}?`}
+                          onConfirm={() =>
+                            removeMod.mutate({ profileId, modId: mod.id })
+                          }
+                        >
+                          <Button
+                            danger
+                            size="small"
+                            icon={<DeleteOutlined />}
+                          >
+                            Remove
+                          </Button>
+                        </Popconfirm>,
+                      ]
+                    : undefined
+                }
               >
                 <List.Item.Meta
                   avatar={

@@ -5,11 +5,13 @@ import ProfileCard from "@/components/ProfileCard";
 import CreateProfileModal from "@/components/CreateProfileModal";
 import { useProfiles } from "@/hooks/queries/useProfiles";
 import { useCreateProfile } from "@/hooks/mutations/useProfiles";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Home() {
   const { data: profiles, isLoading } = useProfiles();
   const createProfile = useCreateProfile();
   const [modalOpen, setModalOpen] = useState(false);
+  const { canEdit } = useAuth();
 
   if (isLoading) {
     return (
@@ -25,13 +27,15 @@ export default function Home() {
         <Typography.Title level={2} className="mb-0!">
           Profiles
         </Typography.Title>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setModalOpen(true)}
-        >
-          Create Profile
-        </Button>
+        {canEdit && (
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setModalOpen(true)}
+          >
+            Create Profile
+          </Button>
+        )}
       </div>
 
       {profiles && profiles.length > 0 ? (

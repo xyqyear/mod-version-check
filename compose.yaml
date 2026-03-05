@@ -8,4 +8,5 @@ services:
       - ./data:/app/backend/data
     environment:
       - APP_NAME=Mod Version Checker
+      # - AUTH_TOKEN=your-secret-token
     restart: unless-stopped

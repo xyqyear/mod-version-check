@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.auth import require_auth
 from app.db import get_db
 from app.routers.schemas import SearchResponse
 from app.services.search_service import SearchService
@@ -8,7 +9,7 @@ from app.services.search_service import SearchService
 router = APIRouter(prefix="/search", tags=["search"])
 
 
-@router.get("/mods", response_model=SearchResponse)
+@router.get("/mods", response_model=SearchResponse, dependencies=[Depends(require_auth)])
 async def search_mods(
     query: str,
     loader: str | None = None,

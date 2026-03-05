@@ -3,12 +3,13 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import httpx
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 
 from app.config import settings
+from app.auth import require_auth
 from app.db import init_db
 from app.providers import init_providers
 from app.scheduler import start_scheduler, stop_scheduler
@@ -54,6 +55,16 @@ api_app.add_middleware(
 @api_app.get("/health")
 async def health_check():
     return {"status": "ok"}
+
+
+@api_app.get("/auth/required")
+async def auth_required():
+    return {"required": bool(settings.auth_token)}
+
+
+@api_app.get("/auth/check", dependencies=[Depends(require_auth)])
+async def auth_check():
+    return {"authenticated": True}
 
 
 @api_app.exception_handler(Exception)

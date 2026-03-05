@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     curseforge_base_url: str = "https://api.curseforge.com"
     curseforge_api_key: str | None = None
     http_timeout: int = 30
+    auth_token: str | None = "change-me"
 
 
 settings = Settings()

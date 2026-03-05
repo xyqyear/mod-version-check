@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.auth import require_auth
 from app.db import get_db
 from app.routers.schemas import ModCreate, ModResponse, ModUpdate
 from app.services.mod_service import ModService
@@ -14,7 +15,7 @@ async def list_mods(search: str | None = None, db: AsyncSession = Depends(get_db
     return await service.get_all(search=search)
 
 
-@router.post("", response_model=ModResponse, status_code=201)
+@router.post("", response_model=ModResponse, status_code=201, dependencies=[Depends(require_auth)])
 async def create_mod(data: ModCreate, db: AsyncSession = Depends(get_db)):
     service = ModService(db)
     return await service.create(**data.model_dump())
@@ -29,7 +30,7 @@ async def get_mod(mod_id: int, db: AsyncSession = Depends(get_db)):
     return mod
 
 
-@router.put("/{mod_id}", response_model=ModResponse)
+@router.put("/{mod_id}", response_model=ModResponse, dependencies=[Depends(require_auth)])
 async def update_mod(mod_id: int, data: ModUpdate, db: AsyncSession = Depends(get_db)):
     service = ModService(db)
     mod = await service.update(mod_id, **data.model_dump(exclude_unset=True))
@@ -38,7 +39,7 @@ async def update_mod(mod_id: int, data: ModUpdate, db: AsyncSession = Depends(ge
     return mod
 
 
-@router.delete("/{mod_id}", status_code=204)
+@router.delete("/{mod_id}", status_code=204, dependencies=[Depends(require_auth)])
 async def delete_mod(mod_id: int, db: AsyncSession = Depends(get_db)):
     service = ModService(db)
     if not await service.delete(mod_id):

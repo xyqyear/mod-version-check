@@ -3,6 +3,7 @@ import asyncio
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.auth import require_auth
 from app.db import get_db
 from app.routers.schemas import (
     AddModRequest,
@@ -36,7 +37,7 @@ async def list_profiles(db: AsyncSession = Depends(get_db)):
     ]
 
 
-@router.post("", response_model=ProfileResponse, status_code=201)
+@router.post("", response_model=ProfileResponse, status_code=201, dependencies=[Depends(require_auth)])
 async def create_profile(data: ProfileCreate, db: AsyncSession = Depends(get_db)):
     service = ProfileService(db)
     profile = await service.create(name=data.name, loader=data.loader, game_versions=data.game_versions)
@@ -52,7 +53,7 @@ async def get_profile(profile_id: int, db: AsyncSession = Depends(get_db)):
     return profile
 
 
-@router.put("/{profile_id}", response_model=ProfileResponse)
+@router.put("/{profile_id}", response_model=ProfileResponse, dependencies=[Depends(require_auth)])
 async def update_profile(profile_id: int, data: ProfileUpdate, db: AsyncSession = Depends(get_db)):
     service = ProfileService(db)
     profile = await service.update(profile_id, **data.model_dump(exclude_unset=True))
@@ -61,14 +62,14 @@ async def update_profile(profile_id: int, data: ProfileUpdate, db: AsyncSession 
     return profile
 
 
-@router.delete("/{profile_id}", status_code=204)
+@router.delete("/{profile_id}", status_code=204, dependencies=[Depends(require_auth)])
 async def delete_profile(profile_id: int, db: AsyncSession = Depends(get_db)):
     service = ProfileService(db)
     if not await service.delete(profile_id):
         raise HTTPException(status_code=404, detail="Profile not found")
 
 
-@router.post("/{profile_id}/mods", response_model=ProfileResponse)
+@router.post("/{profile_id}/mods", response_model=ProfileResponse, dependencies=[Depends(require_auth)])
 async def add_mod_to_profile(profile_id: int, data: AddModRequest, db: AsyncSession = Depends(get_db)):
     service = ProfileService(db)
     profile = await service.add_mod(profile_id, data.mod_id)
@@ -78,7 +79,7 @@ async def add_mod_to_profile(profile_id: int, data: AddModRequest, db: AsyncSess
     return profile
 
 
-@router.delete("/{profile_id}/mods/{mod_id}", response_model=ProfileResponse)
+@router.delete("/{profile_id}/mods/{mod_id}", response_model=ProfileResponse, dependencies=[Depends(require_auth)])
 async def remove_mod_from_profile(profile_id: int, mod_id: int, db: AsyncSession = Depends(get_db)):
     service = ProfileService(db)
     profile = await service.remove_mod(profile_id, mod_id)

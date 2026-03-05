@@ -2,10 +2,12 @@ import { Badge, Button, Space, Tooltip, Typography } from "antd";
 import { SyncOutlined } from "@ant-design/icons";
 import { useSyncStatus } from "@/hooks/queries/useSync";
 import { useTriggerSync } from "@/hooks/mutations/useSync";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function SyncStatusBadge() {
   const { data: syncStatus } = useSyncStatus();
   const { mutate: trigger, isPending } = useTriggerSync();
+  const { canEdit } = useAuth();
 
   const isRunning = syncStatus?.status === "running";
 
@@ -50,14 +52,16 @@ export default function SyncStatusBadge() {
           />
         </Tooltip>
       )}
-      <Button
-        type="text"
-        size="small"
-        icon={<SyncOutlined spin={isRunning || isPending} />}
-        onClick={() => trigger()}
-        disabled={isRunning || isPending}
-        className="text-gray-300!"
-      />
+      {canEdit && (
+        <Button
+          type="text"
+          size="small"
+          icon={<SyncOutlined spin={isRunning || isPending} />}
+          onClick={() => trigger()}
+          disabled={isRunning || isPending}
+          className="text-gray-300!"
+        />
+      )}
     </Space>
   );
 }
