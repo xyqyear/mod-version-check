@@ -1,4 +1,3 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   addModToProfile,
   createProfile,
@@ -8,6 +7,7 @@ import {
 } from "@/hooks/api/profiles";
 import { queryKeys } from "@/lib/query-keys";
 import type { ProfileCreate, ProfileUpdate } from "@/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useCreateProfile = () => {
   const queryClient = useQueryClient();
@@ -49,9 +49,9 @@ export const useAddModToProfile = () => {
       addModToProfile(profileId, modId),
     onSuccess: (_, { profileId }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.profiles.detail(profileId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.profiles.matrix(profileId) });
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: queryKeys.profiles.matrix(profileId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.sync.status });
       }, 3000);
     },
   });

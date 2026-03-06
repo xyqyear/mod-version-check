@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Mod
@@ -47,3 +47,11 @@ class ModRepository:
             select(Mod).where((Mod.modrinth_id.isnot(None)) | (Mod.curseforge_id.isnot(None)))
         )
         return list(result.scalars().all())
+
+    async def count_with_provider_ids(self) -> int:
+        result = await self._session.execute(
+            select(func.count())
+            .select_from(Mod)
+            .where((Mod.modrinth_id.isnot(None)) | (Mod.curseforge_id.isnot(None)))
+        )
+        return result.scalar_one()
