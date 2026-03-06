@@ -9,6 +9,7 @@ export const useCreateMod = () => {
     mutationFn: (data: ModCreate) => createMod(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.mods.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.sync.status });
     },
   });
 };
@@ -19,6 +20,7 @@ export const useDeleteMod = () => {
     mutationFn: (id: number) => deleteMod(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.mods.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.sync.status });
     },
   });
 };
