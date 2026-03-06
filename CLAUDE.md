@@ -19,7 +19,7 @@ mod-version-check/
 │   │   ├── main.py              # FastAPI app (dual-app: api_app at /api, app serves SPA)
 │   │   ├── config.py            # Pydantic Settings (DB, sync, provider URLs, auth_token)
 │   │   ├── auth.py              # require_auth dependency (Bearer token, secrets.compare_digest)
-│   │   ├── db.py                # Async SQLAlchemy engine + session + migrations
+│   │   ├── db.py                # Async SQLAlchemy engine + session + init_db (create_all)
 │   │   ├── models.py            # ORM: Mod, Profile, ModVersion, SyncStatus, profile_mods
 │   │   ├── scheduler.py         # APScheduler background sync job
 │   │   ├── providers/
