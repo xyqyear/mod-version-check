@@ -187,6 +187,12 @@ docker compose up -d
 - Semaphore limits concurrent provider requests to 5
 - Optional sync-on-startup via `SYNC_ON_STARTUP` env var
 
+### Background Tasks
+
+- Background tasks use `asyncio.create_task` with standalone async functions that open their own `async_session()`
+- `sync_single_mod` (sync_service): triggered after adding a mod to a profile
+- `delete_orphaned_mod` (mod_service): triggered after removing a mod from a profile; deletes the mod if no profiles reference it
+
 ## Keeping This File Current
 
 This file must always reflect the current state of the codebase. When planning changes that modify the project structure, API surface, or architecture, include CLAUDE.md updates in the plan. Write the file as if from scratch for the current state — no changelogs or "updated X" notes.
