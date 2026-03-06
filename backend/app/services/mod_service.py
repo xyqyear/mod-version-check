@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db import async_session
 from app.models import Mod
 from app.repositories.mod_repository import ModRepository
 
@@ -54,3 +55,13 @@ class ModService:
         await self._repo.delete(mod)
         await self._session.commit()
         return True
+
+
+async def delete_orphaned_mod(mod_id: int) -> None:
+    async with async_session() as session:
+        repo = ModRepository(session)
+        if await repo.count_profiles(mod_id) == 0:
+            mod = await repo.get_by_id(mod_id)
+            if mod:
+                await repo.delete(mod)
+                await session.commit()

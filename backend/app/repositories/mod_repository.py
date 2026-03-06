@@ -1,7 +1,7 @@
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Mod
+from app.models import Mod, profile_mods
 
 
 class ModRepository:
@@ -53,5 +53,11 @@ class ModRepository:
             select(func.count())
             .select_from(Mod)
             .where((Mod.modrinth_id.isnot(None)) | (Mod.curseforge_id.isnot(None)))
+        )
+        return result.scalar_one()
+
+    async def count_profiles(self, mod_id: int) -> int:
+        result = await self._session.execute(
+            select(func.count()).where(profile_mods.c.mod_id == mod_id)
         )
         return result.scalar_one()

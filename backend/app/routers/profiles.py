@@ -16,6 +16,7 @@ from app.routers.schemas import (
 from app.services.matrix_service import MatrixService
 from app.services.profile_service import ProfileService
 from app.services.sync_service import sync_single_mod
+from app.services.mod_service import delete_orphaned_mod
 
 router = APIRouter(prefix="/profiles", tags=["profiles"])
 
@@ -85,6 +86,7 @@ async def remove_mod_from_profile(profile_id: int, mod_id: int, db: AsyncSession
     profile = await service.remove_mod(profile_id, mod_id)
     if not profile:
         raise HTTPException(status_code=404, detail="Profile or mod not found")
+    asyncio.create_task(delete_orphaned_mod(mod_id))
     return profile
 
 

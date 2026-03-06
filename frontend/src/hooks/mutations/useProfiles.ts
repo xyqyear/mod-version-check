@@ -65,6 +65,8 @@ export const useRemoveModFromProfile = () => {
     onSuccess: (_, { profileId }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.profiles.detail(profileId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.profiles.matrix(profileId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.mods.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.sync.status });
     },
   });
 };
