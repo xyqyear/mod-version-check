@@ -48,3 +48,11 @@ async def _run_migrations(conn) -> None:
     )
     if "game_versions" not in existing:
         await conn.execute(text("ALTER TABLE profiles ADD COLUMN game_versions TEXT"))
+
+    mods_columns = await conn.run_sync(
+        lambda sync_conn: {
+            row[1] for row in sync_conn.execute(text("PRAGMA table_info('mods')"))
+        }
+    )
+    if "last_synced_at" not in mods_columns:
+        await conn.execute(text("ALTER TABLE mods ADD COLUMN last_synced_at DATETIME"))

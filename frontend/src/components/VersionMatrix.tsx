@@ -93,7 +93,7 @@ export default function VersionMatrix({ matrix, loading, onDownload }: Props) {
                 const cell = mod.versions[gv] ?? { available: false };
                 return (
                   <TableCell key={gv} className="text-center">
-                    <VersionCell cell={cell} />
+                    <VersionCell cell={cell} synced={mod.synced} />
                   </TableCell>
                 );
               })}

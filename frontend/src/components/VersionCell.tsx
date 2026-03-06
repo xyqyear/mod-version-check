@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
@@ -9,6 +10,7 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   cell: VersionCellType;
+  synced: boolean;
 }
 
 const VERSION_STYLES: Record<string, string> = {
@@ -17,7 +19,18 @@ const VERSION_STYLES: Record<string, string> = {
   alpha: "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20",
 };
 
-export default function VersionCell({ cell }: Props) {
+export default function VersionCell({ cell, synced }: Props) {
+  if (!cell.available && !synced) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Skeleton className="h-[22px] w-full rounded-full" />
+        </TooltipTrigger>
+        <TooltipContent>Waiting for sync</TooltipContent>
+      </Tooltip>
+    );
+  }
+
   if (!cell.available) {
     return (
       <Badge variant="secondary" className="w-full justify-center font-normal">

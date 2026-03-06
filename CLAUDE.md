@@ -157,7 +157,8 @@ docker compose up -d
 - `DownloadModsModal` shows phase text, overall progress bar, and per-mod list with inline progress/status badges
 - Uses native `fetch` (not ky) for external Modrinth API/CDN calls
 - Mods without a provider ID (e.g., `modrinth_id`) are skipped
-- Matrix API (`ModRow`) exposes `modrinth_id` and `curseforge_id` for provider lookup
+- Matrix API (`ModRow`) exposes `modrinth_id`, `curseforge_id`, and `synced` (boolean, derived from `last_synced_at`) for provider lookup and sync state display
+- `VersionCell` renders a skeleton pulse for unsynced mods (`!available && !synced`) and a "—" badge for genuinely unavailable versions (`!available && synced`)
 
 ### API Endpoints
 
@@ -174,7 +175,7 @@ docker compose up -d
 
 ### Models
 
-- **Mod**: Tracked mod with optional modrinth_id/curseforge_id
+- **Mod**: Tracked mod with optional modrinth_id/curseforge_id and `last_synced_at` timestamp (NULL until first sync)
 - **Profile**: Named group of mods with a loader type (fabric/forge/neoforge/quilt) and optional `game_versions` filter (JSON-encoded list of pinned game versions for matrix display)
 - **ModVersion**: Cached version data per mod/provider/loader/game_version
 - **SyncStatus**: Background sync job status tracking

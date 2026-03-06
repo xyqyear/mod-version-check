@@ -41,6 +41,7 @@ async def sync_all_mods() -> None:
                     await _fetch_and_store(
                         version_repo, providers["modrinth"], mod.id, mod.modrinth_id, loaders
                     )
+                    mod.last_synced_at = datetime.utcnow()
 
             sync_status.status = "completed"
             sync_status.completed_at = datetime.utcnow()
@@ -75,6 +76,7 @@ async def sync_single_mod(mod_id: int) -> None:
                 await _fetch_and_store(
                     version_repo, providers["modrinth"], mod.id, mod.modrinth_id, loaders
                 )
+                mod.last_synced_at = datetime.utcnow()
 
             await session.commit()
             logger.info("Single mod sync completed for mod %d", mod_id)

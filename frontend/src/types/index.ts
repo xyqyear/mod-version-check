@@ -70,6 +70,7 @@ export interface ModRow {
   icon_url: string | null;
   modrinth_id: string | null;
   curseforge_id: number | null;
+  synced: boolean;
   versions: Record<string, VersionCell>;
 }
 

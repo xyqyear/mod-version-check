@@ -124,6 +124,7 @@ class ModRow(BaseModel):
     icon_url: str | None
     modrinth_id: str | None
     curseforge_id: int | None
+    synced: bool
     versions: dict[str, VersionCell]
 
 

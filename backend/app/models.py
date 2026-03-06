@@ -74,6 +74,7 @@ class Mod(Base):
     curseforge_id: Mapped[int | None] = mapped_column(Integer, unique=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
+    last_synced_at: Mapped[datetime | None] = mapped_column(DateTime, default=None)
 
     profiles: Mapped[list["Profile"]] = relationship(secondary=profile_mods, back_populates="mods")
     versions: Mapped[list["ModVersion"]] = relationship(back_populates="mod", cascade="all, delete-orphan")

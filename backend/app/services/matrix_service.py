@@ -60,6 +60,7 @@ class MatrixService:
                 "icon_url": mod.icon_url,
                 "modrinth_id": mod.modrinth_id,
                 "curseforge_id": mod.curseforge_id,
+                "synced": mod.last_synced_at is not None,
                 "versions": versions_map,
             })
 
