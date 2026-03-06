@@ -1,6 +1,18 @@
-import { Avatar, Button, Spin, Table, Tooltip, Typography } from "antd";
-import type { ColumnsType } from "antd/es/table";
-import { DownloadOutlined } from "@ant-design/icons";
+import { Download, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import VersionCell from "@/components/VersionCell";
 import type { ModRow, VersionMatrix as VersionMatrixType } from "@/types";
 
@@ -14,73 +26,81 @@ export default function VersionMatrix({ matrix, loading, onDownload }: Props) {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <Spin size="large" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (!matrix || matrix.mods.length === 0) {
     return (
-      <Typography.Text type="secondary" className="block text-center py-8">
+      <p className="text-center py-8 text-muted-foreground">
         No mods added to this profile yet. Add mods to see version availability.
-      </Typography.Text>
+      </p>
     );
   }
 
-  const columns: ColumnsType<ModRow> = [
-    {
-      title: "Mod",
-      dataIndex: "mod_name",
-      key: "mod_name",
-      fixed: "left",
-      width: 200,
-      render: (name: string, record: ModRow) => (
-        <div className="flex items-center gap-2">
-          {record.icon_url && (
-            <Avatar src={record.icon_url} size="small" shape="square" />
-          )}
-          <Typography.Text strong>{name}</Typography.Text>
-        </div>
-      ),
-    },
-    ...matrix.game_versions.map((gv) => ({
-      title: (
-        <div className="flex flex-col items-center gap-1">
-          <span>{gv}</span>
-          {onDownload && (
-            <Tooltip title={`Download mods for ${gv}`}>
-              <Button
-                type="text"
-                size="small"
-                icon={<DownloadOutlined />}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDownload(gv);
-                }}
-                className="text-gray-400 hover:text-blue-500!"
-              />
-            </Tooltip>
-          )}
-        </div>
-      ),
-      key: gv,
-      width: 140,
-      align: "center" as const,
-      render: (_: unknown, record: ModRow) => {
-        const cell = record.versions[gv] ?? { available: false };
-        return <VersionCell cell={cell} />;
-      },
-    })),
-  ];
-
   return (
-    <Table
-      columns={columns}
-      dataSource={matrix.mods}
-      rowKey="mod_id"
-      pagination={false}
-      scroll={{ x: 200 + matrix.game_versions.length * 140 }}
-      size="middle"
-    />
+    <div className="overflow-auto rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="sticky left-0 z-10 bg-background min-w-[200px]">
+              Mod
+            </TableHead>
+            {matrix.game_versions.map((gv) => (
+              <TableHead key={gv} className="text-center min-w-[140px]">
+                <div className="flex flex-col items-center gap-1">
+                  <span>{gv}</span>
+                  {onDownload && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDownload(gv);
+                          }}
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Download mods for {gv}</TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {matrix.mods.map((mod: ModRow) => (
+            <TableRow key={mod.mod_id}>
+              <TableCell className="sticky left-0 z-10 bg-background font-medium">
+                <div className="flex items-center gap-2">
+                  {mod.icon_url && (
+                    <img
+                      src={mod.icon_url}
+                      alt=""
+                      className="h-6 w-6 rounded object-cover"
+                    />
+                  )}
+                  <span>{mod.mod_name}</span>
+                </div>
+              </TableCell>
+              {matrix.game_versions.map((gv) => {
+                const cell = mod.versions[gv] ?? { available: false };
+                return (
+                  <TableCell key={gv} className="text-center">
+                    <VersionCell cell={cell} />
+                  </TableCell>
+                );
+              })}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }

@@ -1,25 +1,14 @@
-import { App as AntdApp, ConfigProvider } from "antd";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
+import { ThemeProvider } from "@/components/theme-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/contexts/AuthContext";
 import App from "@/App";
 import "./index.css";
-
-const theme = {
-  token: {
-    colorPrimary: "#1677ff",
-    borderRadius: 6,
-  },
-  components: {
-    Layout: {
-      headerBg: "#001529",
-      bodyBg: "#f5f7fb",
-    },
-  },
-};
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,17 +28,18 @@ const queryClient = new QueryClient({
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ConfigProvider theme={theme}>
-      <AntdApp>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <TooltipProvider>
             <AuthProvider>
               <App />
             </AuthProvider>
-          </BrowserRouter>
-          <ReactQueryDevtools initialIsOpen={false} />
-        </QueryClientProvider>
-      </AntdApp>
-    </ConfigProvider>
+          </TooltipProvider>
+        </BrowserRouter>
+        <Toaster />
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
+    </ThemeProvider>
   </StrictMode>,
 );

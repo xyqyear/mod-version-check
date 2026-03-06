@@ -6,14 +6,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
   plugins: [react(), tailwindcss(), tsconfigPaths()],
   build: {
-    chunkSizeWarningLimit: 2000,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          antd: ["antd", "@ant-design/icons"],
-        },
-      },
-    },
+    chunkSizeWarningLimit: 600,
   },
   server: {
     port: 5173,

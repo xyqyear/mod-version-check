@@ -1,41 +1,53 @@
-import { Tag, Tooltip } from "antd";
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { VersionCell as VersionCellType } from "@/types";
+import { cn } from "@/lib/utils";
 
 interface Props {
   cell: VersionCellType;
 }
 
+const VERSION_STYLES: Record<string, string> = {
+  release: "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20",
+  beta: "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20",
+  alpha: "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20",
+};
+
 export default function VersionCell({ cell }: Props) {
   if (!cell.available) {
     return (
-      <Tag color="default" className="w-full text-center">
+      <Badge variant="secondary" className="w-full justify-center font-normal">
         —
-      </Tag>
+      </Badge>
     );
   }
 
-  const color =
-    cell.version_type === "release"
-      ? "success"
-      : cell.version_type === "beta"
-        ? "warning"
-        : "error";
-
   return (
-    <Tooltip
-      title={
-        <>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Badge
+          variant="outline"
+          className={cn(
+            "w-full justify-center cursor-default",
+            VERSION_STYLES[cell.version_type ?? ""] ?? VERSION_STYLES.release,
+          )}
+        >
+          {cell.version_number}
+        </Badge>
+      </TooltipTrigger>
+      <TooltipContent>
+        <div className="text-xs">
           <div>{cell.version_number}</div>
-          <div>{cell.version_type}</div>
+          <div className="capitalize">{cell.version_type}</div>
           {cell.date_published && (
             <div>{new Date(cell.date_published).toLocaleDateString()}</div>
           )}
-        </>
-      }
-    >
-      <Tag color={color} className="w-full text-center cursor-default">
-        {cell.version_number}
-      </Tag>
+        </div>
+      </TooltipContent>
     </Tooltip>
   );
 }

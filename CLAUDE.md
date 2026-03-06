@@ -7,7 +7,7 @@
 **Tech Stack:**
 
 - Backend: FastAPI, SQLAlchemy (async), aiosqlite, httpx, APScheduler, Pydantic Settings
-- Frontend: Vite, React 19, TypeScript, TanStack Query v5, Tailwind CSS v4, Ant Design, ky, fflate
+- Frontend: Vite, React 19, TypeScript, TanStack Query v5, Tailwind CSS v4, shadcn/ui, Radix UI, Sonner, lucide-react, ky, fflate
 - Tooling: uv (Python), pnpm (Node.js)
 
 ## Repository Structure
@@ -48,39 +48,47 @@ mod-version-check/
 │   └── pyproject.toml
 ├── frontend/
 │   ├── src/
-│   │   ├── main.tsx             # Entry: ConfigProvider + QueryClient + BrowserRouter + AuthProvider
+│   │   ├── main.tsx             # Entry: ThemeProvider + QueryClient + BrowserRouter + TooltipProvider + AuthProvider + Toaster
 │   │   ├── App.tsx              # Route definitions (AppLayout wrapper, /login, ProtectedRoute)
-│   │   ├── lib/
-│   │   │   ├── api.ts           # ky HTTP client with auth token injection and 401 handling
-│   │   │   ├── query-keys.ts    # Query key factory
-│   │   │   ├── download-service.ts # Download orchestration: resolve → download → zip with progress
-│   │   │   └── download-providers/
-│   │   │       ├── types.ts     # DownloadProvider & ModFileInfo interfaces
-│   │   │       ├── modrinth.ts  # Modrinth CDN download provider (browser-side, CORS-enabled)
-│   │   │       └── index.ts     # Provider registry (getDownloadProvider)
+│   │   ├── index.css            # Tailwind CSS v4 + shadcn theme variables (light/dark)
+│   │   ├── components/
+│   │   │   ├── ui/              # shadcn/ui generated components (button, card, dialog, etc.)
+│   │   │   ├── theme-provider.tsx # ThemeProvider + useTheme (dark/light/system)
+│   │   │   ├── mode-toggle.tsx  # Theme toggle dropdown
+│   │   │   ├── app-sidebar.tsx  # Sidebar with nav, theme toggle, login/logout
+│   │   │   ├── app-header.tsx   # Header with SidebarTrigger + Breadcrumb + SyncStatusBadge
+│   │   │   ├── AppLayout.tsx    # SidebarProvider + AppSidebar + SidebarInset + header + Outlet
+│   │   │   ├── ProtectedRoute.tsx # Redirects to /login if auth required but not authenticated
+│   │   │   ├── ProfileCard.tsx  # Profile summary card
+│   │   │   ├── VersionMatrix.tsx # shadcn Table with sticky first column + per-column download button
+│   │   │   ├── VersionCell.tsx  # Color-coded version badge with tooltip
+│   │   │   ├── CreateProfileModal.tsx # Dialog with Input + Select, controlled state
+│   │   │   ├── ModSearchModal.tsx # Dialog with search Input, scrollable results, add button
+│   │   │   ├── DownloadModsModal.tsx # Dialog with Progress bar, per-mod status, AlertDialog cancel
+│   │   │   └── SyncStatusBadge.tsx # Badge + Tooltip + RefreshCw icon button
+│   │   ├── contexts/
+│   │   │   └── AuthContext.tsx   # AuthProvider + useAuth hook (isAuthRequired, canEdit, login, logout)
+│   │   ├── pages/
+│   │   │   ├── Home.tsx         # Profile cards grid + create button + CreateProfileModal
+│   │   │   ├── Login.tsx        # Centered card with password input, toast.error on failure
+│   │   │   ├── ProfileDetail.tsx # Version matrix + mod management + inline rename + game version filter + download
+│   │   │   └── Settings.tsx     # Tabs (Profiles / Mods Registry) with delete via AlertDialog
 │   │   ├── hooks/
 │   │   │   ├── api/             # Pure API functions (profiles, mods, search, sync, auth)
 │   │   │   ├── queries/         # useQuery wrappers
 │   │   │   └── mutations/       # useMutation wrappers
-│   │   ├── contexts/
-│   │   │   └── AuthContext.tsx   # AuthProvider + useAuth hook (isAuthRequired, canEdit, login, logout)
-│   │   ├── pages/
-│   │   │   ├── Home.tsx         # Profile cards grid + create modal (auth-aware)
-│   │   │   ├── Login.tsx        # Token input card, validates via /auth/check
-│   │   │   ├── ProfileDetail.tsx # Version matrix + mod management + inline rename + game version filter + mod download (auth-aware)
-│   │   │   └── Settings.tsx     # Profiles/mods registry management (protected route)
-│   │   ├── components/
-│   │   │   ├── AppLayout.tsx    # Layout with header nav + sync badge + login/logout button (auth-aware)
-│   │   │   ├── ProtectedRoute.tsx # Redirects to /login if auth required but not authenticated
-│   │   │   ├── ProfileCard.tsx  # Profile summary card
-│   │   │   ├── VersionMatrix.tsx # Ant Design Table with version cells + per-column download button
-│   │   │   ├── VersionCell.tsx  # Color-coded version tag with tooltip
-│   │   │   ├── CreateProfileModal.tsx
-│   │   │   ├── ModSearchModal.tsx # Debounced provider search + add
-│   │   │   ├── DownloadModsModal.tsx # Mod download progress modal with per-mod status + zip creation
-│   │   │   └── SyncStatusBadge.tsx # Sync status display + trigger button (auth-aware)
+│   │   ├── lib/
+│   │   │   ├── api.ts           # ky HTTP client with auth token injection and 401 handling
+│   │   │   ├── query-keys.ts    # Query key factory
+│   │   │   ├── utils.ts         # cn() utility from shadcn init
+│   │   │   ├── download-service.ts # Download orchestration: resolve → download → zip
+│   │   │   └── download-providers/
+│   │   │       ├── types.ts     # DownloadProvider & ModFileInfo interfaces
+│   │   │       ├── modrinth.ts  # Modrinth CDN download provider
+│   │   │       └── index.ts     # Provider registry (getDownloadProvider)
 │   │   └── types/
 │   │       └── index.ts         # All TypeScript interfaces
+│   ├── components.json          # shadcn configuration
 │   └── vite.config.ts
 ├── docs/
 │   ├── curseforge-api.md
@@ -133,8 +141,10 @@ docker compose up -d
 - **API functions** (`hooks/api/`) → **Query hooks** (`hooks/queries/`) → **Components** (3-layer pattern)
 - **Mutation hooks** (`hooks/mutations/`) invalidate relevant query keys on success
 - Query keys centralized in `lib/query-keys.ts`
-- UI: Ant Design components with Tailwind CSS v4 utility classes
-- Ant Design ConfigProvider wraps app for theme customization
+- UI: shadcn/ui components (Radix UI primitives) with Tailwind CSS v4 utility classes
+- Dark mode via ThemeProvider + `dark` class on `<html>`, persisted to localStorage
+- Toast notifications via Sonner (`toast.success()`, `toast.error()`)
+- Sidebar-based layout (`collapsible="icon"`, `variant="inset"`)
 - `AuthProvider` wraps app inside `BrowserRouter`, checks `/auth/required` on mount
 
 ### Mod Download
@@ -144,7 +154,7 @@ docker compose up -d
 - **Download providers** (`lib/download-providers/`): abstract `DownloadProvider` interface with Modrinth implementation; calls Modrinth API v2 directly from browser (CORS-enabled, no API key needed)
 - **Download service** (`lib/download-service.ts`): orchestrates three phases — resolve (get file URLs from providers), download (fetch files with byte-level progress via ReadableStream), zip (pack with fflate at compression level 0)
 - Progress callback emits per-mod status (pending → resolving → downloading → done/skipped/error) and overall progress
-- `DownloadModsModal` shows phase text, overall progress bar, and per-mod list with inline progress/status tags
+- `DownloadModsModal` shows phase text, overall progress bar, and per-mod list with inline progress/status badges
 - Uses native `fetch` (not ky) for external Modrinth API/CDN calls
 - Mods without a provider ID (e.g., `modrinth_id`) are skipped
 - Matrix API (`ModRow`) exposes `modrinth_id` and `curseforge_id` for provider lookup

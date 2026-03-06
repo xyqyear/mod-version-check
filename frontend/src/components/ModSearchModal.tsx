@@ -1,16 +1,15 @@
 import { useCallback, useState } from "react";
+import { Check, Loader2, Plus, Search } from "lucide-react";
+import { toast } from "sonner";
 import {
-  Avatar,
-  Button,
-  Input,
-  List,
-  Modal,
-  Space,
-  Tag,
-  Typography,
-  App,
-} from "antd";
-import { CheckOutlined, PlusOutlined } from "@ant-design/icons";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useSearchMods } from "@/hooks/queries/useSearch";
 import { useCreateMod } from "@/hooks/mutations/useMods";
 import { useAddModToProfile } from "@/hooks/mutations/useProfiles";
@@ -29,7 +28,6 @@ export default function ModSearchModal({
   profileId,
   profileLoader,
 }: Props) {
-  const { message } = App.useApp();
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout>>();
@@ -63,95 +61,97 @@ export default function ModSearchModal({
       }
 
       await addMod.mutateAsync({ profileId, modId });
-      message.success(`Added ${hit.name}`);
+      toast.success(`Added ${hit.name}`);
     } catch {
-      message.error(`Failed to add ${hit.name}`);
+      toast.error(`Failed to add ${hit.name}`);
     }
   };
 
-  return (
-    <Modal
-      title="Search & Add Mods"
-      open={open}
-      onCancel={() => {
-        setSearchQuery("");
-        setDebouncedQuery("");
-        onClose();
-      }}
-      footer={null}
-      width={640}
-    >
-      <Input.Search
-        placeholder="Search mods (e.g., sodium, lithium...)"
-        value={searchQuery}
-        onChange={(e) => handleSearch(e.target.value)}
-        loading={isLoading}
-        className="mb-4"
-        allowClear
-      />
+  const handleClose = () => {
+    setSearchQuery("");
+    setDebouncedQuery("");
+    onClose();
+  };
 
-      <List
-        loading={isLoading}
-        dataSource={searchResult?.hits ?? []}
-        locale={{ emptyText: debouncedQuery ? "No mods found" : "Type to search" }}
-        renderItem={(hit) => (
-          <List.Item
-            actions={[
-              hit.existing_mod_id ? (
-                <Button
-                  key="add"
-                  type="primary"
-                  size="small"
-                  icon={<PlusOutlined />}
-                  onClick={() => handleAdd(hit)}
-                  loading={addMod.isPending}
-                >
-                  Add
-                </Button>
+  return (
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
+      <DialogContent className="sm:max-w-[640px]">
+        <DialogHeader>
+          <DialogTitle>Search & Add Mods</DialogTitle>
+        </DialogHeader>
+
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search mods (e.g., sodium, lithium...)"
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        <div className="max-h-[400px] overflow-y-auto space-y-1">
+          {isLoading && (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          )}
+          {!isLoading && !debouncedQuery && (
+            <p className="text-center py-8 text-muted-foreground text-sm">
+              Type to search
+            </p>
+          )}
+          {!isLoading && debouncedQuery && searchResult?.hits.length === 0 && (
+            <p className="text-center py-8 text-muted-foreground text-sm">
+              No mods found
+            </p>
+          )}
+          {searchResult?.hits.map((hit) => (
+            <div
+              key={`${hit.provider}-${hit.project_id}`}
+              className="flex items-center gap-3 rounded-md p-3 hover:bg-accent/50"
+            >
+              {hit.icon_url ? (
+                <img
+                  src={hit.icon_url}
+                  alt=""
+                  className="h-10 w-10 rounded object-cover shrink-0"
+                />
               ) : (
-                <Button
-                  key="add"
-                  type="primary"
-                  size="small"
-                  icon={<PlusOutlined />}
-                  onClick={() => handleAdd(hit)}
-                  loading={createMod.isPending || addMod.isPending}
-                >
-                  Add
-                </Button>
-              ),
-            ]}
-          >
-            <List.Item.Meta
-              avatar={
-                hit.icon_url ? (
-                  <Avatar src={hit.icon_url} shape="square" />
-                ) : undefined
-              }
-              title={
-                <Space>
-                  <span>{hit.name}</span>
-                  <Tag>{hit.provider}</Tag>
+                <div className="h-10 w-10 rounded bg-muted shrink-0" />
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{hit.name}</span>
+                  <Badge variant="secondary" className="text-xs">
+                    {hit.provider}
+                  </Badge>
                   {hit.existing_mod_id && (
-                    <Tag color="green" icon={<CheckOutlined />}>
+                    <Badge
+                      variant="outline"
+                      className="text-xs bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20"
+                    >
+                      <Check className="mr-1 h-3 w-3" />
                       registered
-                    </Tag>
+                    </Badge>
                   )}
-                </Space>
-              }
-              description={
-                <Typography.Paragraph
-                  type="secondary"
-                  ellipsis={{ rows: 2 }}
-                  className="mb-0!"
-                >
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-2">
                   {hit.description}
-                </Typography.Paragraph>
-              }
-            />
-          </List.Item>
-        )}
-      />
-    </Modal>
+                </p>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => handleAdd(hit)}
+                disabled={createMod.isPending || addMod.isPending}
+              >
+                <Plus className="mr-1 h-4 w-4" />
+                Add
+              </Button>
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

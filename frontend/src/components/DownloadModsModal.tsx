@@ -1,13 +1,32 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, List, Modal, Progress, Tag, Typography } from "antd";
 import {
-  CheckCircleOutlined,
-  CloseCircleOutlined,
-  DownloadOutlined,
-  ForwardOutlined,
-  LoadingOutlined,
-  MinusCircleOutlined,
-} from "@ant-design/icons";
+  AlertCircle,
+  Check,
+  Download,
+  FastForward,
+  Loader2,
+  MinusCircle,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import type { ModRow } from "@/types";
 import {
   downloadModsForVersion,
@@ -33,14 +52,22 @@ const PHASE_LABELS: Record<DownloadPhase, string> = {
   done: "Complete!",
 };
 
-const STATUS_ICONS: Record<ModDownloadStatus, React.ReactNode> = {
-  pending: <MinusCircleOutlined className="text-gray-400" />,
-  resolving: <LoadingOutlined className="text-blue-500" />,
-  downloading: <DownloadOutlined className="text-blue-500" />,
-  done: <CheckCircleOutlined className="text-green-500" />,
-  skipped: <ForwardOutlined className="text-yellow-500" />,
-  error: <CloseCircleOutlined className="text-red-500" />,
-};
+function StatusIcon({ status }: { status: ModDownloadStatus }) {
+  switch (status) {
+    case "pending":
+      return <MinusCircle className="h-4 w-4 text-muted-foreground" />;
+    case "resolving":
+      return <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />;
+    case "downloading":
+      return <Download className="h-4 w-4 text-blue-500" />;
+    case "done":
+      return <Check className="h-4 w-4 text-green-500" />;
+    case "skipped":
+      return <FastForward className="h-4 w-4 text-yellow-500" />;
+    case "error":
+      return <AlertCircle className="h-4 w-4 text-red-500" />;
+  }
+}
 
 export default function DownloadModsModal({
   open,
@@ -52,6 +79,7 @@ export default function DownloadModsModal({
 }: Props) {
   const [progress, setProgress] = useState<DownloadProgress | null>(null);
   const [running, setRunning] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   const start = useCallback(async () => {
@@ -82,18 +110,17 @@ export default function DownloadModsModal({
 
   const handleClose = () => {
     if (running) {
-      Modal.confirm({
-        title: "Cancel download?",
-        content: "The download is still in progress. Are you sure you want to cancel?",
-        onOk: () => {
-          abortRef.current?.abort();
-          setRunning(false);
-          onClose();
-        },
-      });
+      setConfirmCancel(true);
     } else {
       onClose();
     }
+  };
+
+  const handleConfirmCancel = () => {
+    abortRef.current?.abort();
+    setRunning(false);
+    setConfirmCancel(false);
+    onClose();
   };
 
   const handleDownloadZip = () => {
@@ -115,68 +142,80 @@ export default function DownloadModsModal({
   const totalCount = modStates.length;
 
   return (
-    <Modal
-      open={open}
-      onCancel={handleClose}
-      title={`Download mods for ${gameVersion}`}
-      footer={
-        progress?.zipBlob ? (
-          <Button
-            type="primary"
-            icon={<DownloadOutlined />}
-            onClick={handleDownloadZip}
-          >
-            Download Zip ({doneCount} mods)
-          </Button>
-        ) : null
-      }
-      width={520}
-      maskClosable={false}
-    >
-      <div className="mb-4">
-        <Typography.Text type="secondary">{PHASE_LABELS[phase]}</Typography.Text>
-        <Progress
-          percent={Math.round(overall)}
-          status={phase === "done" ? "success" : "active"}
-          className="mt-1"
-        />
-        {phase === "done" && (
-          <Typography.Text type="secondary" className="text-xs">
-            {doneCount} of {totalCount} mods downloaded
-          </Typography.Text>
-        )}
-      </div>
+    <>
+      <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
+        <DialogContent className="sm:max-w-[520px]" onInteractOutside={(e) => running && e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>Download mods for {gameVersion}</DialogTitle>
+          </DialogHeader>
 
-      <List
-        size="small"
-        dataSource={modStates}
-        renderItem={(mod: ModDownloadState) => (
-          <List.Item className="py-1!">
-            <div className="flex items-center gap-2 w-full">
-              {STATUS_ICONS[mod.status]}
-              <span className="flex-1 truncate">{mod.modName}</span>
-              {mod.status === "downloading" && (
-                <Progress
-                  percent={mod.progress}
-                  size="small"
-                  className="w-20 mb-0!"
-                  showInfo={false}
-                />
-              )}
-              {mod.status === "skipped" && (
-                <Tag color="warning" className="m-0!">
-                  {mod.error ?? "Skipped"}
-                </Tag>
-              )}
-              {mod.status === "error" && (
-                <Tag color="error" className="m-0!">
-                  {mod.error ?? "Error"}
-                </Tag>
-              )}
-            </div>
-          </List.Item>
-        )}
-      />
-    </Modal>
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              {PHASE_LABELS[phase]}
+            </p>
+            <Progress value={Math.round(overall)} />
+            {phase === "done" && (
+              <p className="text-xs text-muted-foreground">
+                {doneCount} of {totalCount} mods downloaded
+              </p>
+            )}
+          </div>
+
+          <div className="max-h-[300px] overflow-y-auto space-y-1">
+            {modStates.map((mod: ModDownloadState) => (
+              <div
+                key={mod.modName}
+                className="flex items-center gap-2 py-1 px-1"
+              >
+                <StatusIcon status={mod.status} />
+                <span className="flex-1 truncate text-sm">{mod.modName}</span>
+                {mod.status === "downloading" && (
+                  <Progress
+                    value={mod.progress}
+                    className="w-20 h-2"
+                  />
+                )}
+                {mod.status === "skipped" && (
+                  <Badge variant="outline" className="text-xs bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
+                    {mod.error ?? "Skipped"}
+                  </Badge>
+                )}
+                {mod.status === "error" && (
+                  <Badge variant="destructive" className="text-xs">
+                    {mod.error ?? "Error"}
+                  </Badge>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {progress?.zipBlob && (
+            <DialogFooter>
+              <Button onClick={handleDownloadZip}>
+                <Download className="mr-2 h-4 w-4" />
+                Download Zip ({doneCount} mods)
+              </Button>
+            </DialogFooter>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={confirmCancel} onOpenChange={setConfirmCancel}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel download?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The download is still in progress. Are you sure you want to cancel?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Continue</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmCancel}>
+              Cancel Download
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

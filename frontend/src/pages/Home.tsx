@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Button, Col, Row, Spin, Typography } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { Loader2, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import ProfileCard from "@/components/ProfileCard";
 import CreateProfileModal from "@/components/CreateProfileModal";
 import { useProfiles } from "@/hooks/queries/useProfiles";
@@ -16,7 +16,7 @@ export default function Home() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
-        <Spin size="large" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -24,32 +24,25 @@ export default function Home() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <Typography.Title level={2} className="mb-0!">
-          Profiles
-        </Typography.Title>
+        <h2 className="text-2xl font-bold tracking-tight">Profiles</h2>
         {canEdit && (
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setModalOpen(true)}
-          >
+          <Button onClick={() => setModalOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
             Create Profile
           </Button>
         )}
       </div>
 
       {profiles && profiles.length > 0 ? (
-        <Row gutter={[16, 16]}>
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {profiles.map((profile) => (
-            <Col key={profile.id} xs={24} sm={12} md={8} lg={6}>
-              <ProfileCard profile={profile} />
-            </Col>
+            <ProfileCard key={profile.id} profile={profile} />
           ))}
-        </Row>
+        </div>
       ) : (
-        <Typography.Text type="secondary" className="block text-center py-12">
+        <p className="text-center py-12 text-muted-foreground">
           No profiles yet. Create one to start tracking mod versions.
-        </Typography.Text>
+        </p>
       )}
 
       <CreateProfileModal
